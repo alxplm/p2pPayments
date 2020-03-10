@@ -1,0 +1,31 @@
+
+
+CREATE COMPUTE MODULE pullFunds_VisaPullFundsTransactionsResult
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		
+		DECLARE status INTEGER InputRoot.HTTPResponseHeader."X-Original-HTTP-Status-Code";	    
+	    
+	    IF status <> 200 THEN
+	    	SET Environment.Variables.Error = true;
+			SET Environment.Variables.ErrorMessage = 'Visa pullfundstransactions failed'; 
+			RETURN TRUE;
+	    END IF;
+	    
+	    IF status = 200 AND InputRoot.JSON.Data.actionCode <> '00' THEN
+	    	SET Environment.Variables.Error = true;
+			SET Environment.Variables.ErrorMessage = 'Visa pullfundstransactions failed'; 
+			SET Environment.Variables.OriginalMessage = InputRoot.JSON.Data;
+			RETURN TRUE;
+	    END IF;
+	    
+		SET Environment.Variables.VisaPullFundsTransactions = InputRoot.JSON.Data;
+		
+		SET Environment.Variables.Result.PullFundsTransaction.Status = 'OK';
+		SET Environment.Variables.Result.PullFundsTransaction.PaymentSystem = 'Visa';
+		SET Environment.Variables.Result.PullFundsTransaction.OriginalMessage = InputRoot.JSON.Data;
+
+		RETURN TRUE;
+	END;
+
+END MODULE;

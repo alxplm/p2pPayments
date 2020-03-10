@@ -1,0 +1,32 @@
+
+
+CREATE COMPUTE MODULE pushFunds_VisaPushFundsTransactionsResult
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		DECLARE status INTEGER InputRoot.HTTPResponseHeader."X-Original-HTTP-Status-Code";	    
+	    
+	    IF status <> 200 THEN
+	    	SET Environment.Variables.Error = true;
+	    	SET Environment.Variables.ErrorMessage = 'Visa pushfundstransactions failed'; 
+			SET Environment.Variables.Result.PushFundsTransaction.Status = 'FAILED';
+			SET Environment.Variables.Result.PushFundsTransaction.PaymentSystem = 'Visa';
+			RETURN TRUE;
+	    END IF;
+	    
+	    IF status = 200 AND InputRoot.JSON.Data.actionCode <> '00' THEN
+	    	SET Environment.Variables.Error = true;
+	    	SET Environment.Variables.ErrorMessage = 'Visa pushfundstransactions failed'; 
+			SET Environment.Variables.Result.PushFundsTransaction.Status = 'FAILED';
+			SET Environment.Variables.Result.PushFundsTransaction.PaymentSystem = 'Visa';
+			SET Environment.Variables.Result.PushFundsTransaction.OriginalMessage = InputRoot.JSON.Data;
+			RETURN TRUE;
+	    END IF;
+	    
+	    SET Environment.Variables.Result.PushFundsTransaction.Status = 'OK';
+		SET Environment.Variables.Result.PushFundsTransaction.PaymentSystem = 'Visa';
+		SET Environment.Variables.Result.PushFundsTransaction.OriginalMessage = InputRoot.JSON.Data;
+
+		RETURN TRUE;
+	END;
+
+END MODULE;

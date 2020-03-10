@@ -1,0 +1,30 @@
+
+
+CREATE COMPUTE MODULE reverseFunds_VisaReverseFundsTransactionsResult
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+
+
+		DECLARE status INTEGER InputRoot.HTTPResponseHeader."X-Original-HTTP-Status-Code";	    
+	    
+	    IF status <> 200 THEN
+	    	SET Environment.Variables.Error = true;
+			SET Environment.Variables.ErrorMessage = Environment.Variables.ErrorMessage || 'Visa reversefundstransactions failed'; 
+			RETURN TRUE;
+	    END IF;
+	    
+	    IF status = 200 AND InputRoot.JSON.Data.actionCode <> '00' THEN
+	    	SET Environment.Variables.Error = true;
+			SET Environment.Variables.ErrorMessage = Environment.Variables.ErrorMessage || 'Visa reversefundstransactions failed'; 
+			SET Environment.Variables.OriginalMessage = InputRoot.JSON.Data;
+			RETURN TRUE;
+	    END IF;
+	    
+	    SET Environment.Variables.Result.ReverseFundsTransaction.Status = 'OK';
+		SET Environment.Variables.Result.ReverseFundsTransaction.PaymentSystem = 'Visa';
+		SET Environment.Variables.Result.ReverseFundsTransaction.OriginalMessage = InputRoot.JSON.Data;
+	    
+		RETURN TRUE;
+	END;
+
+END MODULE;

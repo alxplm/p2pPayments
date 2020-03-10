@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ComIbmCompute.msgnode="ComIbmCompute.msgnode" xmlns:ComIbmRoute.msgnode="ComIbmRoute.msgnode" xmlns:ComIbmWSInput.msgnode="ComIbmWSInput.msgnode" xmlns:ComIbmWSReply.msgnode="ComIbmWSReply.msgnode" xmlns:cardValidation.subflow="cardValidation.subflow" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:eflow="http://www.ibm.com/wbi/2005/eflow" xmlns:pullFunds.subflow="pullFunds.subflow" xmlns:pushFunds.subflow="pushFunds.subflow"
+    xmlns:reverseFunds.subflow="reverseFunds.subflow" xmlns:utility="http://www.ibm.com/wbi/2005/eflow_utility" nsURI="main.msgflow" nsPrefix="main.msgflow">
+  <eClassifiers xmi:type="eflow:FCMComposite" name="FCMComposite_1">
+    <eSuperTypes href="http://www.ibm.com/wbi/2005/eflow#//FCMBlock"/>
+    <translation xmi:type="utility:TranslatableString" key="main" bundleName="main" pluginId="p2pPayments"/>
+    <colorGraphic16 xmi:type="utility:GIFFileGraphic" resourceName="platform:/plugin/p2pPayments/icons/full/obj16/main.gif"/>
+    <colorGraphic32 xmi:type="utility:GIFFileGraphic" resourceName="platform:/plugin/p2pPayments/icons/full/obj30/main.gif"/>
+    <composition>
+      <nodes xmi:type="ComIbmWSInput.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_1" location="89,197" URLSpecifier="/payment" messageDomainProperty="JSON">
+        <translation xmi:type="utility:ConstantString" string="HTTP Input"/>
+      </nodes>
+      <nodes xmi:type="ComIbmWSReply.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_2" location="1121,345">
+        <translation xmi:type="utility:ConstantString" string="HTTP Reply"/>
+      </nodes>
+      <nodes xmi:type="ComIbmCompute.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_5" location="181,193" computeExpression="esql://routine/#main_prepare.Main" computeMode="destinationAndMessage">
+        <translation xmi:type="utility:ConstantString" string="prepare"/>
+      </nodes>
+      <nodes xmi:type="cardValidation.subflow:FCMComposite_1" xmi:id="FCMComposite_1_21" location="256,195">
+        <translation xmi:type="utility:ConstantString" string="cardValidation"/>
+      </nodes>
+      <nodes xmi:type="pullFunds.subflow:FCMComposite_1" xmi:id="FCMComposite_1_24" location="440,197">
+        <translation xmi:type="utility:ConstantString" string="pullFunds"/>
+      </nodes>
+      <nodes xmi:type="pushFunds.subflow:FCMComposite_1" xmi:id="FCMComposite_1_26" location="589,198">
+        <translation xmi:type="utility:ConstantString" string="pushFunds"/>
+      </nodes>
+      <nodes xmi:type="reverseFunds.subflow:FCMComposite_1" xmi:id="FCMComposite_1_28" location="731,252">
+        <translation xmi:type="utility:ConstantString" string="reverseFunds"/>
+      </nodes>
+      <nodes xmi:type="ComIbmRoute.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_7" location="338,196">
+        <outTerminals terminalNodeID="true" dynamic="true" label="true"/>
+        <translation xmi:type="utility:ConstantString" string="isErrorValidation"/>
+        <filterTable filterPattern="$Environment/Variables/Error = 'true'" routingOutputTerminal="true"/>
+      </nodes>
+      <nodes xmi:type="ComIbmRoute.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_8" location="507,198">
+        <outTerminals terminalNodeID="true" dynamic="true" label="true"/>
+        <translation xmi:type="utility:ConstantString" string="isErrorPull"/>
+        <filterTable filterPattern="$Environment/Variables/Error = 'true'" routingOutputTerminal="true"/>
+      </nodes>
+      <nodes xmi:type="ComIbmRoute.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_9" location="660,199">
+        <outTerminals terminalNodeID="true" dynamic="true" label="true"/>
+        <translation xmi:type="utility:ConstantString" string="isErrorPush"/>
+        <filterTable filterPattern="$Environment/Variables/Result/PushFundsTransaction/Status = 'FAILED'" routingOutputTerminal="true"/>
+      </nodes>
+      <nodes xmi:type="ComIbmCompute.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_11" location="1004,344" computeExpression="esql://routine/#main_result.Main" computeMode="destinationAndMessage">
+        <translation xmi:type="utility:ConstantString" string="result"/>
+      </nodes>
+      <connections xmi:type="eflow:FCMConnection" xmi:id="FCMConnection_6" targetNode="FCMComposite_1_5" sourceNode="FCMComposite_1_1" sourceTerminalName="OutTerminal.out" targetTerminalName="InTerminal.in"/>
+      <connections xmi:type="eflow:FCMConnection" xmi:id="FCMConnection_16" targetNode="FCMComposite_1_21" sourceNode="FCMComposite_1_5" sourceTerminalName="OutTerminal.out" targetTerminalName="InTerminal.Input"/>
+      <connections xmi:type="eflow:FCMConnection" xmi:id="FCMConnection_4" targetNode="FCMComposite_1_7" sourceNode="FCMComposite_1_21" sourceTerminalName="OutTerminal.Output" targetTerminalName="InTerminal.in"/>
+      <connections xmi:type="eflow:FCMConnection" xmi:id="FCMConnection_5" targetNode="FCMComposite_1_8" sourceNode="FCMComposite_1_24" sourceTerminalName="OutTerminal.Output" targetTerminalName="InTerminal.in"/>
+      <connections xmi:type="eflow:FCMConnection" xmi:id="FCMConnection_9" targetNode="FCMComposite_1_9" sourceNode="FCMComposite_1_26" sourceTerminalName="OutTerminal.Output" targetTerminalName="InTerminal.in"/>
+      <connections xmi:type="eflow:FCMConnection" xmi:id="FCMConnection_10" targetNode="FCMComposite_1_28" sourceNode="FCMComposite_1_9" sourceTerminalName="true" targetTerminalName="InTerminal.Input"/>
+      <connections xmi:type="eflow:FCMConnection" xmi:id="FCMConnection_19" targetNode="FCMComposite_1_2" sourceNode="FCMComposite_1_11" sourceTerminalName="OutTerminal.out" targetTerminalName="InTerminal.in"/>
+      <connections xmi:type="eflow:FCMConnection" xmi:id="FCMConnection_14" targetNode="FCMComposite_1_11" sourceNode="FCMComposite_1_5" sourceTerminalName="OutTerminal.failure" targetTerminalName="InTerminal.in">
+        <bendPoints>27,138,-796,-13</bendPoints>
+      </connections>
+      <connections xmi:type="eflow:FCMConnection" xmi:id="FCMConnection_15" targetNode="FCMComposite_1_11" sourceNode="FCMComposite_1_7" sourceTerminalName="true" targetTerminalName="InTerminal.in">
+        <bendPoints>27,125,-624,-23</bendPoints>
+      </connections>
+      <connections xmi:type="eflow:FCMConnection" xmi:id="FCMConnection_20" targetNode="FCMComposite_1_11" sourceNode="FCMComposite_1_8" sourceTerminalName="true" targetTerminalName="InTerminal.in">
+        <bendPoints>27,112,-470,-34</bendPoints>
+      </connections>
+      <connections xmi:type="eflow:FCMConnection" xmi:id="FCMConnection_23" targetNode="FCMComposite_1_11" sourceNode="FCMComposite_1_28" sourceTerminalName="OutTerminal.Output" targetTerminalName="InTerminal.in"/>
+      <connections xmi:type="eflow:FCMConnection" xmi:id="FCMConnection_24" targetNode="FCMComposite_1_24" sourceNode="FCMComposite_1_7" sourceTerminalName="OutTerminal.default" targetTerminalName="InTerminal.Input"/>
+      <connections xmi:type="eflow:FCMConnection" xmi:id="FCMConnection_25" targetNode="FCMComposite_1_26" sourceNode="FCMComposite_1_8" sourceTerminalName="OutTerminal.default" targetTerminalName="InTerminal.Input"/>
+      <connections xmi:type="eflow:FCMConnection" xmi:id="FCMConnection_26" targetNode="FCMComposite_1_11" sourceNode="FCMComposite_1_9" sourceTerminalName="OutTerminal.default" targetTerminalName="InTerminal.in">
+        <bendPoints>162,-11,-180,-156</bendPoints>
+      </connections>
+    </composition>
+    <propertyOrganizer/>
+    <stickyBoard/>
+  </eClassifiers>
+</ecore:EPackage>

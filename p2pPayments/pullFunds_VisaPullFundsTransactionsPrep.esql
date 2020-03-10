@@ -1,0 +1,47 @@
+
+
+CREATE COMPUTE MODULE pullFunds_VisaPullFundsTransactionsPrep
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+
+		SET OutputRoot.HTTPRequestHeader."Authorization" = Environment.Variables.VisaAuth;
+		SET OutputRoot.HTTPRequestHeader."Accept" = 'application/json';
+		SET OutputRoot.HTTPRequestHeader."Content-Type" = 'application/json';
+		
+		CREATE LASTCHILD OF OutputRoot DOMAIN('JSON');
+		
+		SET OutputRoot.JSON.Data.senderCardExpiryDate = Environment.Variables.Request.senderCardExpiryDate;
+		SET OutputRoot.JSON.Data.senderCurrencyCode = Environment.Variables.Request.currency;
+		SET OutputRoot.JSON.Data.senderPrimaryAccountNumber = Environment.Variables.Request.senderCard;
+		SET OutputRoot.JSON.Data.amount = Environment.Variables.Request.amount;	
+		
+		SET OutputRoot.JSON.Data.localTransactionDateTime = CAST(CURRENT_TIMESTAMP AS CHARACTER FORMAT 'yyyy-MM-dd''T''HH:mm:ss');	
+		
+		--3-digit numeric country code for the country of the BIN under which your Visa Direct solution is registered
+		SET OutputRoot.JSON.Data.acquirerCountryCode = Environment.Variables.acquirerCountryCode;
+		--The Bank Identification Number (BIN) under which your Visa Direct is registered
+		SET OutputRoot.JSON.Data.acquiringBin = Environment.Variables.acquiringBin;
+		--Identifies the programs' business application type for VisaNet transaction processing.For Money Transfer, AA applies to transactions where the sender and recipient are the same person and PP applies to transactions where the sender and recipient are not the same person.
+		SET OutputRoot.JSON.Data.businessApplicationId = Environment.Variables.businessApplicationId;
+		
+		--A value used to tie together service calls related to a single financial transaction. When passing Account Funding Transaction (AFT) and Original Credit Transaction (OCT) methods, this value must differ between the two methods. When passing the Account Funding Transaction Reversal (AFTR) method, this value must match the retrievalReferenceNumber previously passed with the AFT method for this transaction.
+		--TODO according recommended format: ydddhhnnnnnn (developer.visa.com/capabilities/visa_direct/reference#visa_direct__funds_transfer)
+		SET OutputRoot.JSON.Data.retrievalReferenceNumber = '111111555001';
+		--A unique value should be used for each API method. However, when passing the (AFTR) method, this value must match the systemsTraceAuditNumber previously passed with the AFT method for the current transaction.
+		SET OutputRoot.JSON.Data.systemsTraceAuditNumber = '555001';
+		
+		SET OutputRoot.JSON.Data.cardAcceptor.name = 'Acceptor 13';
+		--An identifier for the card acceptor (Visa Direct Originator). This value should be unique for each originator for whom you are sending transactions.
+		SET OutputRoot.JSON.Data.cardAcceptor.idCode = 'CA-IDCode-11111';
+		--The identifier for the terminal at a card acceptor location. If sending transactions from a card not present environment, use the same value for all transactions.
+		SET OutputRoot.JSON.Data.cardAcceptor.terminalId = 'TID-9999';
+		SET OutputRoot.JSON.Data.cardAcceptor.address.country = 'USA';
+		SET OutputRoot.JSON.Data.cardAcceptor.address.county = '081';
+		SET OutputRoot.JSON.Data.cardAcceptor.address.state = 'CA'; 
+		SET OutputRoot.JSON.Data.cardAcceptor.address.zipCode = '94404';
+
+
+		RETURN TRUE;
+	END;
+
+END MODULE;

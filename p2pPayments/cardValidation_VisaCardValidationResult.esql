@@ -1,0 +1,20 @@
+
+
+CREATE COMPUTE MODULE cardValidation_VisaCardValidationResult
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+	    
+	    DECLARE status INTEGER InputRoot.HTTPResponseHeader."X-Original-HTTP-Status-Code";	    
+	    
+	    IF status <> 200 OR (status = 200 AND InputRoot.JSON.Data.actionCode <> '00') THEN
+	    	SET Environment.Variables.Error = true;
+			SET Environment.Variables.ErrorMessage = 'Card validation failed'; 
+			RETURN TRUE;
+	    END IF;
+	    
+		SET Environment.Variables.Result.SenderValidation.Status = 'OK';
+		SET Environment.Variables.Result.SenderValidation.OriginalMessage = InputRoot.JSON.Data;
+	    
+		RETURN TRUE;
+	END;
+END MODULE;

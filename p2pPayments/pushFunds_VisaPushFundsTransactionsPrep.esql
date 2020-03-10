@@ -1,0 +1,55 @@
+
+
+CREATE COMPUTE MODULE pushFunds_VisaPushFundsTransactionsPrep
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		
+		SET OutputRoot.HTTPRequestHeader."Authorization" = Environment.Variables.VisaAuth;
+		SET OutputRoot.HTTPRequestHeader."Accept" = 'application/json';
+		SET OutputRoot.HTTPRequestHeader."Content-Type" = 'application/json';
+		
+		CREATE LASTCHILD OF OutputRoot DOMAIN('JSON');
+		
+		SET OutputRoot.JSON.Data.amount = Environment.Variables.Request.amount;	
+		SET OutputRoot.JSON.Data.recipientPrimaryAccountNumber = Environment.Variables.Request.receiverCard;	
+		SET OutputRoot.JSON.Data.senderAccountNumber = Environment.Variables.Request.senderCard;
+		SET OutputRoot.JSON.Data.transactionCurrencyCode = Environment.Variables.Request.currency;
+		
+		IF Environment.Variables.senderCardType = 'visa' THEN 
+			--The VisaNet transaction identifier. If you have previously sent an AFT(visa pull), this field must include the VisaNet transaction identifier returned in the AFT response
+			SET OutputRoot.JSON.Data.transactionIdentifier = Environment.Variables.VisaPullFundsTransactions.transactionIdentifier;
+		END IF;
+		
+		SET OutputRoot.JSON.Data.localTransactionDateTime = CAST(CURRENT_TIMESTAMP AS CHARACTER FORMAT 'yyyy-MM-dd''T''HH:mm:ss');
+				
+		--3-digit numeric country code for the country of the BIN under which your Visa Direct solution is registered
+		SET OutputRoot.JSON.Data.acquirerCountryCode = Environment.Variables.acquirerCountryCode;
+		--The Bank Identification Number (BIN) under which your Visa Direct is registered
+		SET OutputRoot.JSON.Data.acquiringBin = Environment.Variables.acquiringBin;
+		--Identifies the programs' business application type for VisaNet transaction processing.For Money Transfer, AA applies to transactions where the sender and recipient are the same person and PP applies to transactions where the sender and recipient are not the same person.
+		SET OutputRoot.JSON.Data.businessApplicationId = Environment.Variables.businessApplicationId;
+		
+		--A value used to tie together service calls related to a single financial transaction. When passing Account Funding Transaction (AFT) and Original Credit Transaction (OCT) methods, this value must differ between the two methods. When passing the Account Funding Transaction Reversal (AFTR) method, this value must match the retrievalReferenceNumber previously passed with the AFT method for this transaction.
+		--TODO according recommended format: ydddhhnnnnnn (developer.visa.com/capabilities/visa_direct/reference#visa_direct__funds_transfer)
+		SET OutputRoot.JSON.Data.retrievalReferenceNumber = '222222555001';
+		--If the transaction is a money transfer, the field is required and must contain a valid sourceOfFundsCode code that matches the funding instrument. (https://developer.visa.com/request_response_codes#source_of_funds)
+		SET OutputRoot.JSON.Data.sourceOfFundsCode = '04';
+		--A unique value should be used for each API method. However, when passing the (AFTR) method, this value must match the systemsTraceAuditNumber previously passed with the AFT method for the current transaction.
+		SET OutputRoot.JSON.Data.systemsTraceAuditNumber = '555001';
+		
+		--! For P2P payments cardAcceptor.name must contain the sender name. (https://developer.visa.com/capabilities/visa_direct/reference#visa_direct__funds_transfer__v1__pushfunds)
+		SET OutputRoot.JSON.Data.cardAcceptor.name = Environment.Variables.Request.senderName;
+		--An identifier for the card acceptor (Visa Direct Originator). This value should be unique for each originator for whom you are sending transactions.
+		SET OutputRoot.JSON.Data.cardAcceptor.idCode = 'CA-IDCode-11111';
+		--The identifier for the terminal at a card acceptor location. If sending transactions from a card not present environment, use the same value for all transactions.
+		SET OutputRoot.JSON.Data.cardAcceptor.terminalId = 'TID-9999';
+		SET OutputRoot.JSON.Data.cardAcceptor.address.country = 'USA';
+		SET OutputRoot.JSON.Data.cardAcceptor.address.county = '081';
+		SET OutputRoot.JSON.Data.cardAcceptor.address.state = 'CA'; 
+		SET OutputRoot.JSON.Data.cardAcceptor.address.zipCode = '94404';
+
+		
+		RETURN TRUE;
+	END;
+
+END MODULE;

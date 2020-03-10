@@ -1,0 +1,20 @@
+
+
+CREATE COMPUTE MODULE cardValidation_VisaCardValidationPrep
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+
+		SET OutputRoot.HTTPRequestHeader."Authorization" = Environment.Variables.VisaAuth;
+		SET OutputRoot.HTTPRequestHeader."Accept" = 'application/json';
+		SET OutputRoot.HTTPRequestHeader."Content-Type" = 'application/json';
+		
+		CREATE LASTCHILD OF OutputRoot DOMAIN('JSON');
+		
+		SET OutputRoot.JSON.Data.cardCvv2Value = Environment.Variables.Request.senderCardCvv2;
+		SET OutputRoot.JSON.Data.primaryAccountNumber = Environment.Variables.Request.senderCard;
+		SET OutputRoot.JSON.Data.cardExpiryDate = Environment.Variables.Request.senderCardExpiryDate;
+		
+		RETURN TRUE;
+	END;
+
+END MODULE;

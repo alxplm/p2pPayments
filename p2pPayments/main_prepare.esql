@@ -1,0 +1,57 @@
+
+
+CREATE COMPUTE MODULE main_prepare
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		
+		SET Environment.Variables.VisaAuth = 'Basic ' || BASE64ENCODE(getPolicyProperty('{PolicyProj}:Visa','userid') || ':' || getPolicyProperty('{PolicyProj}:Visa','password'));
+		
+		SET Environment.Variables.acquirerCountryCode = getPolicyProperty('{PolicyProj}:Visa','acquirerCountryCode');
+		SET Environment.Variables.acquiringBin = getPolicyProperty('{PolicyProj}:Visa','acquiringBin');
+		SET Environment.Variables.businessApplicationId = getPolicyProperty('{PolicyProj}:Visa','businessApplicationId');
+		
+		SET Environment.Variables.Request = InputRoot.JSON.Data;
+		
+		SET Environment.Variables.Error = false;
+		SET Environment.Variables.ErrorMessage = '';
+		
+		DECLARE senderCardFD CHAR SUBSTRING(InputRoot.JSON.Data.senderCard FROM 1 FOR 1);
+		DECLARE receiverCardFD CHAR SUBSTRING(InputRoot.JSON.Data.receiverCard FROM 1 FOR 1);
+		DECLARE senderCardType CHARACTER;
+		DECLARE receiverCardType CHARACTER;
+		
+		IF senderCardFD = '4' THEN
+   			SET senderCardType = 'visa';
+		ELSEIF senderCardFD = '5' OR senderCardFD = '6' THEN
+			SET senderCardType = 'mastercard';
+		ELSE
+			SET senderCardType = 'unsupported';
+		END IF;
+		
+		IF receiverCardFD = '4' THEN
+   			SET receiverCardType = 'visa';
+		ELSEIF receiverCardFD = '5' OR receiverCardFD = '6' THEN
+			SET receiverCardType = 'mastercard';
+		ELSE
+			SET receiverCardType = 'unsupported';
+		END IF;
+		
+		IF receiverCardType = 'unsupported' OR senderCardType = 'unsupported' THEN 	
+			SET Environment.Variables.Error = true;
+			SET Environment.Variables.ErrorMessage = 'Unsupported card type detected';
+			PROPAGATE TO TERMINAL 'failure';
+			RETURN FALSE;
+		END IF;
+		
+		SET Environment.Variables.senderCardType = senderCardType;
+		SET Environment.Variables.receiverCardType = receiverCardType;
+		
+		RETURN TRUE;
+	END;
+	
+	CREATE FUNCTION getPolicyProperty( IN policyName CHARACTER, IN propertyName CHARACTER )
+ 	RETURNS CHARACTER
+ 	LANGUAGE JAVA
+ 	EXTERNAL NAME "PolicyAccessClass.getPolicyProperty";
+
+END MODULE;

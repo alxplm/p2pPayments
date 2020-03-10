@@ -1,0 +1,13 @@
+
+
+CREATE COMPUTE MODULE main_result
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		CREATE LASTCHILD OF OutputRoot DOMAIN('JSON');
+		SET OutputRoot.JSON.Data.error = Environment.Variables.Error;
+		SET OutputRoot.JSON.Data.message = Environment.Variables.ErrorMessage;
+		SET OutputRoot.JSON.Data.result = Environment.Variables.Result;
+		RETURN TRUE;
+	END;
+
+END MODULE;
